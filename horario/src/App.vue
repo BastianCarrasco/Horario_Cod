@@ -76,10 +76,18 @@ export default {
 </script>
 
 <style>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 .app {
   font-family: Arial, sans-serif;
   padding: 15px;
   background-color: #f9f9f9;
+  min-height: 100vh;
+  width: 100%;
 }
 
 h1 {
@@ -89,20 +97,31 @@ h1 {
   text-align: center;
 }
 
+.schedule-container {
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: auto;
+  margin: 0 auto;
+  padding: 0;
+}
+
 /* Estilos para móvil */
 .mobile-schedule {
   display: flex;
   flex-direction: column;
-  overflow-x: auto;
+  width: 100%;
+  min-width: fit-content;
 }
 
 .mobile-header, .mobile-row {
   display: flex;
-  min-width: 100%;
+  width: 100%;
+  min-width: fit-content;
 }
 
 .header-cell, .day-cell, .group-header, .mobile-cell {
   min-width: 40px;
+  width: 40px;
   height: 40px;
   border: 1px solid #ddd;
   display: flex;
@@ -111,6 +130,7 @@ h1 {
   padding: 5px;
   font-size: 0.9em;
   color: black;
+  flex-shrink: 0;
 }
 
 .header-cell, .group-header {
@@ -137,30 +157,34 @@ h1 {
 
 /* Estilos para pantallas más grandes (tablets y desktop) */
 @media (min-width: 768px) {
-  .schedule-container {
-    margin-top: 20px;
-    color: black;
+  .app {
+    padding: 20px;
   }
   
-  .mobile-schedule {
-    display: table;
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .mobile-header, .mobile-row {
-    display: table-row;
+  h1 {
+    font-size: 1.8em;
+    margin-bottom: 20px;
   }
   
   .header-cell, .day-cell, .group-header, .mobile-cell {
-    display: table-cell;
     min-width: 50px;
+    width: 50px;
     height: 50px;
     font-size: 1em;
   }
   
-  h1 {
-    font-size: 1.5em;
+  .mobile-schedule {
+    width: auto;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .header-cell, .day-cell, .group-header, .mobile-cell {
+    min-width: 60px;
+    width: 60px;
+    height: 60px;
+    font-size: 1.1em;
   }
 }
 </style>
