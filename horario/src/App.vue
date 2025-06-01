@@ -1,27 +1,30 @@
 <template>
   <div class="app">
-    <h1>Horario Cod - {{ currentDate }}</h1>
-    <div class="schedule-container">
-      <div class="mobile-schedule">
-        <div class="mobile-header">
-          <div class="header-cell">Grupo \ Día</div>
-          <div 
-            v-for="day in daysInJune" 
-            :key="day"
-            :class="['day-cell', { 'current-day': isCurrentDay(day) }]"
-          >
-            {{ day }}
-          </div>
+    <h1 style="color: black;" >Horario Cod - {{ currentDate }}</h1>
+    <div class="matrix-container">
+      <div class="matrix-header">
+        <div class="corner-cell">Grupo 4</div>
+        <div 
+          v-for="day in weekDays" 
+          :key="day" 
+          class="day-header"
+        >
+          {{ day }}
         </div>
-        <div class="mobile-row">
-          <div class="group-header">Grupo 4</div>
-          <div 
-            v-for="day in daysInJune" 
-            :key="`4-${day}`" 
-            :class="['mobile-cell', getCellClass(4, day)]"
-          >
-            {{ getCellValue(4, day) }}
-          </div>
+      </div>
+      <div 
+        v-for="(week, weekIndex) in weeksInJune" 
+        :key="weekIndex" 
+        class="matrix-row"
+      >
+        <div class="week-header">Semana {{ weekIndex + 1 }}</div>
+        <div 
+          v-for="day in week" 
+          :key="day" 
+          :class="['matrix-cell', getCellClass(4, day), { 'current-day': isCurrentDay(day) }]"
+        >
+          <div class="day-number">{{ day }}</div>
+          <div class="day-value">{{ getCellValue(4, day) }}</div>
         </div>
       </div>
     </div>
@@ -32,6 +35,7 @@
 export default {
   data() {
     return {
+      weekDays: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
       daysInJune: Array.from({ length: 30 }, (_, i) => i + 1),
       grupo4Pattern: [
         'D', 'C', 'C', 'C', 'C', 
@@ -47,14 +51,51 @@ export default {
       currentDay: new Date().getDate()
     };
   },
+  computed: {
+    weeksInJune() {
+      const weeks = [];
+      let week = [];
+      
+      // Ajustar para que el primer día caiga en lunes
+      const firstDay = new Date(new Date().getFullYear(), 5, 1).getDay(); // 5 = junio
+      const offset = firstDay === 0 ? 6 : firstDay - 1; // Ajuste para domingo
+      
+      // Rellenar días vacíos al inicio si es necesario
+      for (let i = 0; i < offset; i++) {
+        week.push(0); // 0 representa día vacío
+      }
+      
+      // Organizar los días en semanas
+      this.daysInJune.forEach(day => {
+        week.push(day);
+        if (week.length === 7) {
+          weeks.push(week);
+          week = [];
+        }
+      });
+      
+      // Añadir la última semana si no está completa
+      if (week.length > 0) {
+        // Rellenar con días vacíos al final si es necesario
+        while (week.length < 7) {
+          week.push(0);
+        }
+        weeks.push(week);
+      }
+      
+      return weeks;
+    }
+  },
   created() {
     this.formatCurrentDate();
   },
   methods: {
     getCellValue(group, day) {
+      if (day === 0) return '';
       return this.grupo4Pattern[day - 1] || 'D';
     },
     getCellClass(group, day) {
+      if (day === 0) return 'empty-cell';
       const value = this.getCellValue(group, day);
       return {
         'cell-D': value === 'D',
@@ -85,68 +126,95 @@ export default {
 .app {
   font-family: Arial, sans-serif;
   padding: 15px;
-  background-color: #f9f9f9;
+  background-color: #aeaeae;
   min-height: 100vh;
   width: 100%;
+  color: black;
 }
 
 h1 {
   font-size: 1.3em;
-  margin-bottom: 0.5em;
+  margin-bottom: 1em;
   color: #333;
   text-align: center;
 }
 
-.schedule-container {
-  width: 100%;
-  max-width: 100vw;
-  overflow-x: auto;
-  margin: 0 auto;
-  padding: 0;
-}
-
-/* Estilos para móvil */
-.mobile-schedule {
+.matrix-container {
   display: flex;
   flex-direction: column;
   width: 100%;
-  min-width: fit-content;
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  overflow: hidden;
 }
 
-.mobile-header, .mobile-row {
+.matrix-header {
   display: flex;
-  width: 100%;
-  min-width: fit-content;
+  background: #f2f2f2;
+  font-weight: bold;
 }
 
-.header-cell, .day-cell, .group-header, .mobile-cell {
-  min-width: 40px;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #ddd;
+.matrix-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.matrix-row:last-child {
+  border-bottom: none;
+}
+
+.corner-cell, .day-header, .week-header, .matrix-cell {
+  flex: 1;
+  min-height: 60px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 5px;
-  font-size: 0.9em;
-  color: black;
-  flex-shrink: 0;
+  padding: 8px;
+  text-align: center;
 }
 
-.header-cell, .group-header {
+.corner-cell {
+  background: #f2f2f2;
   font-weight: bold;
-  background-color: #f2f2f2;
-  position: sticky;
-  left: 0;
-  z-index: 2;
+  min-width: 80px;
+  justify-content: flex-start;
+  padding-left: 15px;
 }
 
-.day-cell {
-  background-color: #f2f2f2;
+.day-header {
+  font-weight: bold;
+  background: #f2f2f2;
 }
 
-.current-day {
-  border: 2px solid #2196F3 !important;
+.week-header {
+  background: #f2f2f2;
+  font-weight: bold;
+  min-width: 80px;
+  justify-content: flex-start;
+  padding-left: 15px;
+}
+
+.matrix-cell {
+  flex-direction: column;
+  position: relative;
+}
+
+.empty-cell {
+  background: #fafafa;
+}
+
+.day-number {
+  font-size: 0.8em;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.day-value {
+  font-size: 1.2em;
+  font-weight: bold;
 }
 
 /* Colores de celdas */
@@ -155,36 +223,28 @@ h1 {
 .cell-C { background-color: #fff9c4; }
 .cell-D { background-color: #ffe0b2; }
 
-/* Estilos para pantallas más grandes (tablets y desktop) */
-@media (min-width: 768px) {
-  .app {
-    padding: 20px;
-  }
-  
-  h1 {
-    font-size: 1.8em;
-    margin-bottom: 20px;
-  }
-  
-  .header-cell, .day-cell, .group-header, .mobile-cell {
-    min-width: 50px;
-    width: 50px;
-    height: 50px;
-    font-size: 1em;
-  }
-  
-  .mobile-schedule {
-    width: auto;
-    margin: 0 auto;
-  }
+.current-day {
+  border: 2px solid #2196F3 !important;
 }
 
-@media (min-width: 1024px) {
-  .header-cell, .day-cell, .group-header, .mobile-cell {
+/* Estilos responsivos */
+@media (max-width: 600px) {
+  .corner-cell, .week-header {
     min-width: 60px;
-    width: 60px;
-    height: 60px;
-    font-size: 1.1em;
+    font-size: 0.9em;
+    padding-left: 10px;
+  }
+  
+  .day-header {
+    font-size: 0.8em;
+  }
+  
+  .day-number {
+    font-size: 0.7em;
+  }
+  
+  .day-value {
+    font-size: 1em;
   }
 }
 </style>
