@@ -10,41 +10,28 @@
       </select>
     </div>
 
-    <div v-if="selectedMonth === 5" class="matrix-container">
-      <!-- 5 = Junio -->
-      <div class="month-title">Junio {{ new Date().getFullYear() }}</div>
+    <!-- La matriz del horario ahora se muestra para cualquier mes -->
+    <div class="matrix-container">
+      <div class="month-title">
+        {{ selectedMonthName }} {{ new Date().getFullYear() }}
+      </div>
       <div class="matrix-header">
         <div class="corner-cell">Grupo 4</div>
         <div v-for="day in weekDays" :key="day" class="day-header">
           {{ day }}
         </div>
       </div>
-      <div
-        v-for="(week, weekIndex) in weeksInMonth"
-        :key="weekIndex"
-        class="matrix-row"
-      >
+      <div v-for="(week, weekIndex) in weeksInMonth" :key="weekIndex" class="matrix-row">
         <div class="week-header">Semana {{ weekIndex + 1 }}</div>
-        <div
-          v-for="day in week"
-          :key="day"
-          :class="[
-            'matrix-cell',
-            getCellClass(4, day),
-            { 'current-day': isCurrentDay(day) && isCurrentMonth },
-          ]"
-        >
+        <div v-for="day in week" :key="day" :class="[
+          'matrix-cell',
+          getCellClass(4, day),
+          { 'current-day': isCurrentDay(day) && isCurrentMonth },
+        ]">
           <div class="day-number">{{ day }}</div>
           <div class="day-value">{{ getCellValue(4, day) }}</div>
         </div>
       </div>
-    </div>
-
-    <div v-else class="construction-message">
-      <div class="construction-icon">🚧</div>
-      <h2>Horario en construcción</h2>
-      <p>Estamos trabajando en el horario para {{ months[selectedMonth] }}.</p>
-      <p>Por favor, consulta el horario de junio mientras tanto.</p>
     </div>
   </div>
 </template>
@@ -68,39 +55,25 @@ export default {
         "Noviembre",
         "Diciembre",
       ],
-      selectedMonth: 5, // Junio por defecto (0 = Enero, 5 = Junio)
-      daysInJune: Array.from({ length: 30 }, (_, i) => i + 1),
-      grupo4Pattern: [
-        "D",
-        "C",
-        "C",
-        "C",
-        "C",
-        "D",
-        "D",
-        "D",
-        "D",
+      selectedMonth: new Date().getMonth(), // Mes actual por defecto
+      // Nuevo patrón base de 16 días (AAAA,DDDD,CCCC,DDDD)
+      grupo4PatternBase: [
         "A",
         "A",
         "A",
-        "A",
+        "A", // 4 As
         "D",
         "D",
         "D",
-        "D",
+        "D", // 4 Ds
         "C",
         "C",
         "C",
-        "C",
+        "C", // 4 Cs
         "D",
         "D",
         "D",
-        "D",
-        "A",
-        "A",
-        "A",
-        "A",
-        "D",
+        "D", // 4 Ds
       ],
       currentDate: "",
       currentDay: new Date().getDate(),
@@ -111,34 +84,26 @@ export default {
     añoActual() {
       return new Date().getFullYear();
     },
+    // Calcula las semanas del mes seleccionado para la visualización
     weeksInMonth() {
       const weeks = [];
       let week = [];
 
-      // Obtener el primer día del mes seleccionado
-      const firstDay = new Date(
-        new Date().getFullYear(),
-        this.selectedMonth,
-        1
-      ).getDay();
-      const offset = firstDay === 0 ? 6 : firstDay - 1; // Ajuste para domingo
+      const year = new Date().getFullYear();
+      // Obtener el día de la semana del primer día del mes (0=domingo, 1=lunes...)
+      const firstDayOfMonth = new Date(year, this.selectedMonth, 1).getDay();
+      // Ajuste para que el lunes sea el primer día de la semana (0 para domingo, 6 para lunes)
+      const offset = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
 
-      // Días en el mes seleccionado
-      const daysInMonth =
-        this.selectedMonth === 5
-          ? 30
-          : new Date(
-              new Date().getFullYear(),
-              this.selectedMonth + 1,
-              0
-            ).getDate();
+      // Obtiene el número total de días en el mes seleccionado
+      const daysInMonth = new Date(year, this.selectedMonth + 1, 0).getDate();
 
-      // Rellenar días vacíos al inicio si es necesario
+      // Rellenar días vacíos al inicio de la primera semana si es necesario
       for (let i = 0; i < offset; i++) {
-        week.push(0);
+        week.push(0); // 0 representa un día vacío
       }
 
-      // Organizar los días en semanas
+      // Organizar los días del mes en semanas de 7 días
       for (let day = 1; day <= daysInMonth; day++) {
         week.push(day);
         if (week.length === 7) {
@@ -147,35 +112,66 @@ export default {
         }
       }
 
-      // Añadir la última semana si no está completa
+      // Añadir la última semana si no está completa y rellenar con días vacíos al final
       if (week.length > 0) {
         while (week.length < 7) {
-          week.push(0);
+          week.push(0); // 0 representa un día vacío
         }
         weeks.push(week);
       }
 
       return weeks;
     },
+    // Determina si el mes seleccionado es el mes actual
     isCurrentMonth() {
       return this.selectedMonth === this.currentMonth;
+    },
+    // Genera el patrón de turnos para el mes seleccionado, basado en el patrón base cíclico
+    grupo4PatternForSelectedMonth() {
+      const year = new Date().getFullYear();
+      let totalDaysBeforeSelectedMonth = 0;
+      // Suma los días de los meses anteriores al seleccionado para calcular el desfase
+      for (let i = 0; i < this.selectedMonth; i++) {
+        totalDaysBeforeSelectedMonth += new Date(year, i + 1, 0).getDate();
+      }
+
+      // Calcula el índice de inicio en el patrón base de 16 días
+      const startDayIndex =
+        totalDaysBeforeSelectedMonth % this.grupo4PatternBase.length;
+      // Obtiene el número de días del mes seleccionado
+      const daysInSelectedMonth = new Date(
+        year,
+        this.selectedMonth + 1,
+        0
+      ).getDate();
+
+      const pattern = [];
+      // Rellena el patrón para el mes actual, aplicando el ciclo
+      for (let i = 0; i < daysInSelectedMonth; i++) {
+        pattern.push(
+          this.grupo4PatternBase[
+          (startDayIndex + i) % this.grupo4PatternBase.length
+          ]
+        );
+      }
+      return pattern;
+    },
+    // Nombre del mes seleccionado para mostrar en el título
+    selectedMonthName() {
+      return this.months[this.selectedMonth];
     },
   },
   created() {
     this.formatCurrentDate();
   },
   methods: {
-    obtenerAñoActual() {
-      return new Date().getFullYear();
-    },
+    // Obtiene el valor del turno para un día específico (D, C, A, etc.)
     getCellValue(group, day) {
-      if (day === 0) return "";
-      // Solo aplicamos el patrón para junio
-      if (this.selectedMonth === 5) {
-        return this.grupo4Pattern[day - 1] || "D";
-      }
-      return "";
+      if (day === 0) return ""; // Retorna vacío para días que no pertenecen al mes
+      // Usa el patrón dinámicamente generado para el mes seleccionado
+      return this.grupo4PatternForSelectedMonth[day - 1] || "D"; // Default a 'D' si hay algún problema (aunque no debería)
     },
+    // Asigna clases CSS basadas en el valor del turno para estilizar las celdas
     getCellClass(group, day) {
       if (day === 0) return "empty-cell";
       const value = this.getCellValue(group, day);
@@ -183,9 +179,10 @@ export default {
         "cell-D": value === "D",
         "cell-C": value === "C",
         "cell-A": value === "A",
-        "cell-B": value === "B",
+        "cell-B": value === "B", // Incluido por si en el futuro usas 'B'
       };
     },
+    // Formatea y establece la fecha actual en el encabezado
     formatCurrentDate() {
       const options = {
         weekday: "long",
@@ -196,208 +193,14 @@ export default {
       const today = new Date();
       this.currentDate = today.toLocaleDateString("es-ES", options);
     },
+    // Determina si un día es el día actual del mes
     isCurrentDay(day) {
       return day === this.currentDay;
     },
+    // Método que se ejecuta cuando se cambia el mes en el selector
     changeMonth() {
-      // Aquí podrías cargar datos diferentes para cada mes si los tuvieras
+      // No se requiere lógica adicional aquí ya que los patrones son computados dinámicamente
     },
   },
 };
 </script>
-
-<style>
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
-.app {
-  font-family: Arial, sans-serif;
-  padding: 15px;
-  background-color: #aeaeae;
-  min-height: 100vh;
-  width: 100%;
-  color: black;
-}
-
-h1 {
-  font-size: 1.3em;
-  margin-bottom: 1em;
-  color: #333;
-  text-align: center;
-}
-
-.month-selector {
-  text-align: center;
-  margin: 20px 0;
-}
-
-.month-selector select {
-  padding: 8px 15px;
-  border-radius: 4px;
-  border: 1px solid #ddd;
-  font-size: 1em;
-  background: white;
-}
-
-.matrix-container {
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-}
-
-.month-title {
-  text-align: center;
-  font-size: 1.5em;
-  font-weight: bold;
-  padding: 15px;
-  background: #f2f2f2;
-  border-bottom: 1px solid #ddd;
-}
-
-.matrix-header {
-  display: flex;
-  background: #f2f2f2;
-  font-weight: bold;
-}
-
-.matrix-row {
-  display: flex;
-  border-bottom: 1px solid #eee;
-}
-
-.matrix-row:last-child {
-  border-bottom: none;
-}
-
-.corner-cell,
-.day-header,
-.week-header,
-.matrix-cell {
-  flex: 1;
-  min-height: 60px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px;
-  text-align: center;
-}
-
-.corner-cell {
-  background: #f2f2f2;
-  font-weight: bold;
-  min-width: 80px;
-  justify-content: flex-start;
-  padding-left: 15px;
-}
-
-.day-header {
-  font-weight: bold;
-  background: #f2f2f2;
-}
-
-.week-header {
-  background: #f2f2f2;
-  font-weight: bold;
-  min-width: 80px;
-  justify-content: flex-start;
-  padding-left: 15px;
-}
-
-.matrix-cell {
-  flex-direction: column;
-  position: relative;
-}
-
-.empty-cell {
-  background: #fafafa;
-}
-
-.day-number {
-  font-size: 0.8em;
-  color: #666;
-  margin-bottom: 3px;
-}
-
-.day-value {
-  font-size: 1.2em;
-  font-weight: bold;
-}
-
-/* Colores de celdas */
-.cell-A {
-  background-color: white;
-}
-.cell-B {
-  background-color: #e6f7ff;
-}
-.cell-C {
-  background-color: #fff9c4;
-}
-.cell-D {
-  background-color: #ffe0b2;
-}
-
-.current-day {
-  border: 2px solid #2196f3 !important;
-}
-
-.construction-message {
-  text-align: center;
-  max-width: 600px;
-  margin: 30px auto;
-  padding: 30px;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.construction-icon {
-  font-size: 3em;
-  margin-bottom: 20px;
-}
-
-.construction-message h2 {
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.construction-message p {
-  color: #666;
-  margin-bottom: 10px;
-}
-
-/* Estilos responsivos */
-@media (max-width: 600px) {
-  .corner-cell,
-  .week-header {
-    min-width: 60px;
-    font-size: 0.9em;
-    padding-left: 10px;
-  }
-
-  .day-header {
-    font-size: 0.8em;
-  }
-
-  .day-number {
-    font-size: 0.7em;
-  }
-
-  .day-value {
-    font-size: 1em;
-  }
-
-  .construction-message {
-    padding: 20px;
-  }
-}
-</style>

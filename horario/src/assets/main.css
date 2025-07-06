@@ -1,3 +1,195 @@
-@import './base.css';
+@import "./base.css";
 
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
+.app {
+  font-family: Arial, sans-serif;
+  padding: 15px;
+  background-color: #aeaeae;
+  min-height: 100vh;
+  width: 100%;
+  color: black;
+}
+
+h1 {
+  font-size: 1.3em;
+  margin-bottom: 1em;
+  color: #333;
+  text-align: center;
+}
+
+.month-selector {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.month-selector select {
+  padding: 8px 15px;
+  border-radius: 4px;
+  border: 1px solid #ddd;
+  font-size: 1em;
+  background: white;
+}
+
+.matrix-container {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.month-title {
+  text-align: center;
+  font-size: 1.5em;
+  font-weight: bold;
+  padding: 15px;
+  background: #f2f2f2;
+  border-bottom: 1px solid #ddd;
+}
+
+.matrix-header {
+  display: flex;
+  background: #f2f2f2;
+  font-weight: bold;
+}
+
+.matrix-row {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.matrix-row:last-child {
+  border-bottom: none;
+}
+
+.corner-cell,
+.day-header,
+.week-header,
+.matrix-cell {
+  flex: 1;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  text-align: center;
+}
+
+.corner-cell {
+  background: #f2f2f2;
+  font-weight: bold;
+  min-width: 80px;
+  justify-content: flex-start;
+  padding-left: 15px;
+}
+
+.day-header {
+  font-weight: bold;
+  background: #f2f2f2;
+}
+
+.week-header {
+  background: #f2f2f2;
+  font-weight: bold;
+  min-width: 80px;
+  justify-content: flex-start;
+  padding-left: 15px;
+}
+
+.matrix-cell {
+  flex-direction: column;
+  position: relative;
+}
+
+.empty-cell {
+  background: #fafafa;
+}
+
+.day-number {
+  font-size: 0.8em;
+  color: #666;
+  margin-bottom: 3px;
+}
+
+.day-value {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+/* Colores de celdas */
+.cell-A {
+  background-color: white;
+}
+.cell-B {
+  background-color: #e6f7ff;
+}
+.cell-C {
+  background-color: #fff9c4;
+}
+.cell-D {
+  background-color: #ffe0b2;
+}
+
+.current-day {
+  border: 2px solid #2196f3 !important;
+}
+
+.construction-message {
+  text-align: center;
+  max-width: 600px;
+  margin: 30px auto;
+  padding: 30px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.construction-icon {
+  font-size: 3em;
+  margin-bottom: 20px;
+}
+
+.construction-message h2 {
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.construction-message p {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+/* Estilos responsivos */
+@media (max-width: 600px) {
+  .corner-cell,
+  .week-header {
+    min-width: 60px;
+    font-size: 0.9em;
+    padding-left: 10px;
+  }
+
+  .day-header {
+    font-size: 0.8em;
+  }
+
+  .day-number {
+    font-size: 0.7em;
+  }
+
+  .day-value {
+    font-size: 1em;
+  }
+
+  .construction-message {
+    padding: 20px;
+  }
+}
